@@ -35,6 +35,10 @@ cp .env.example .env
 and set your environment variables in `.env` file.
 
 
+### run the FastAPI server
+```bash
+uvicorn main:app --reload
+```
 
 
 
