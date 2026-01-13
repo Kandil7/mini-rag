@@ -19,5 +19,22 @@ $ conda create -n rag python=3.8
 $ conda activate rag
 ```
 
+## Installation 
+
+### install the requirements packages
+
+```bash
+pip install -r requirements.txt
+```
+
+### setup the environment variables
+
+```bash
+cp .env.example .env
+```
+and set your environment variables in `.env` file.
+
+
+
 
 
