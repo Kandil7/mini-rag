@@ -13,7 +13,7 @@ async def upload_data(project_id:str , file:UploadFile,
                       app_settings:Settings= Depends(get_settings)):
     
     #validate the file type and size
-    is_validate= DataController().validate_uploud_file(file)
+    is_validate= DataController().validate_upload_file(file)
         
 
     return is_validate
