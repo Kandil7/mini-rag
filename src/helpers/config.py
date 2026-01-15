@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 
     FILE_ALLOWED_TYPE: List[str]
     FILE_MAX_SIZE : int
+    FILE_DEFUALT_CHANCK_SIZE:int
 
 
     class Config:
