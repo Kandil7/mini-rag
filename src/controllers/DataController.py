@@ -11,6 +11,7 @@ class DataController(BaseController):
         # validate the file type
         if file.content_type not in self.app_settings.FILE_ALLOWED_TYPE:
             return False
-        if file.size*self.size_scale > self.app_settings.FILE_MAX_SIZE:
+        # file.size is in bytes, FILE_MAX_SIZE is in MB, so convert MB to bytes for comparison
+        if file.size > self.app_settings.FILE_MAX_SIZE * self.size_scale:
             return False
         return True
