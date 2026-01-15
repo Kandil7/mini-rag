@@ -17,7 +17,8 @@ async def upload_data(project_id:str , file:UploadFile,
                       app_settings:Settings= Depends(get_settings)):
     
     #validate the file type and size
-    is_validate, response_signal = DataController().validate_upload_file(file)
+    data_controller=DataController()
+    is_validate, response_signal = data_controller.validate_upload_file(file)
 
     if not is_validate:
       return JSONResponse(
@@ -27,12 +28,12 @@ async def upload_data(project_id:str , file:UploadFile,
          }
        )   
 
-    # return {
-    #     'response': response_signal ,
-        
-    # }
+   
     project_dir_path=ProjectController().get_project_path(project_id=project_id)
-    file_path=os.path.join(project_dir_path, file.filename)
+    file_path=data_controller.generate_unique_filename(
+        orig_file_name= file.filename,
+         project_id=project_id
+    )
 
     async with aiofiles.open(file_path, mode='wb') as f:
        while chunck := await file.read(app_settings.FILE_DEFUALT_CHANCK_SIZE):
