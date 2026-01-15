@@ -3,7 +3,7 @@ from .BaseController import BaseController
 import os
 from models import ResponseSignal
 
-class DataController(BaseController):
+class ProjectController(BaseController):
     def __init__(self):
         super().__init__()
 
@@ -14,6 +14,6 @@ class DataController(BaseController):
                                  project_id)
 
         if not os.path.exists(project_dir):
-            os.mkdirs(project_dir)
+            os.makedirs(project_dir)
         
         return project_dir
