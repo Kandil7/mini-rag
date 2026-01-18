@@ -4,6 +4,7 @@ from helpers.config import get_settings,Settings
 import aiofiles 
 from models import ResponseSignal
 from controllers import DataController,ProjectController
+from schema.data import ProcessRequest
 import os
 import logging
 
@@ -56,3 +57,9 @@ async def upload_data(project_id:str , file:UploadFile,
           'file_id': file_id
        }
     )
+@data_router.Post('/process/{project_id}')
+async def process_endpoint(project_id: str, process_request: ProcessRequest):
+    pass
+
+    # Process the file using the provided parameters
+   
