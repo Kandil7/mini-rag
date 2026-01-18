@@ -59,7 +59,10 @@ async def upload_data(project_id:str , file:UploadFile,
     )
 @data_router.Post('/process/{project_id}')
 async def process_endpoint(project_id: str, process_request: ProcessRequest):
-    pass
+
+    file_id=ProcessRequest.file_id
+    
+    return file_id
 
     # Process the file using the provided parameters
    
