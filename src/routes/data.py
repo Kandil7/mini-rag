@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from helpers.config import get_settings,Settings
 import aiofiles 
 from models import ResponseSignal
-from controllers import DataController,ProjectController
+from controllers import DataController,ProjectController,ProcessController
 from schema.data import ProcessRequest
 import os
 import logging
@@ -61,8 +61,39 @@ async def upload_data(project_id:str , file:UploadFile,
 async def process_endpoint(project_id: str, process_request: ProcessRequest):
 
     file_id=ProcessRequest.file_id
+
+    chunck_size=ProcessRequest.chunck_size
+
+    overlap_size=ProcessRequest.overlap_size
+
     
-    return file_id
+    process_controller=ProcessController(project_id=project_id)
+
+    file_content=process_controller.get_file_content(file_id=file_id)
+    
+    file_chuncks=process_controller.process_file_content(
+        file_content=file_content,
+        file_id=file_id,
+        chunck_size=chunck_size,
+        overlap_size=overlap_size
+
+    )
+
+    if file_chuncks is None or len(file_chuncks)==0 :
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                'message': ResponseSignal.FILE_PROCESS_FAILED.value
+            }
+        )
+    
+    return file_chuncks
+
+
+    
+    
+
+    
 
     # Process the file using the provided parameters
    
