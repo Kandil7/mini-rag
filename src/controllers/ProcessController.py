@@ -1,16 +1,18 @@
 from .BaseController import BaseController
-from .ProcessController import ProjectContorller
+from .ProjectController import ProjectController
 import os
-from langchain_community.document_loader import TextLoader 
-from langchain_community.document_loader import pyMuPDFLoader
-from langchain_text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import TextLoader
+
+ 
+from langchain_community.document_loaders import PyMuPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from models.enums import ProcessingEnum
 class ProcessController(BaseController):
 
     def __init__(self,project_id:str):
         super().__init__()
         self.project_id=project_id
-        self.project_path=ProjectContorller().get_project_path(project_id=project_id)
+        self.project_path=ProjectController().get_project_path(project_id=project_id)
 
     def get_file_extension(self,file_id:str):
         return os.path.splitText()[-1]
@@ -21,7 +23,7 @@ class ProcessController(BaseController):
         if file_ext==ProcessingEnum.TXT.value:
             return TextLoader(file_path,encodin='utf-8')
         if file_ext==ProcessingEnum.PDF.value:
-            return pyMuPDFLoader(file_path)
+            return PyMuPDFLoader(file_path)
         
         return None
     

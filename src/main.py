@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from routes import base,data
 from helpers.config import Settings,get_settings
-from motor.motor_asyncio import AsyncIOMototClient
+from motor.motor_asyncio import AsyncIOMotorClient
 
 app = FastAPI()
 
 @app.on_event("startup")
 async def startup_db_client():
-    app.mongodb_client = AsyncIOMototClient(Settings.MONGODB_URL)
+    app.mongodb_client = AsyncIOMotorClient(Settings.MONGODB_URL)
     app.db = app.mongodb_client[Settings.MONGODB_DATABASE]
 
 @app.on_event("shutdown")
