@@ -1,19 +1,31 @@
 services:
   mongodb:
-    image: mongodb:7-jammy
-
+    image: mongo:7.0
     container_name: mongodb
-
     ports:
-      -"27007:27017"
-
+      - "27017:27017"
     volumes:
-      - ./mongodb:/data/db
-
+      - ./mongodb_data:/data/db
     networks:
       - backend
+    restart: always
 
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: mini-rag-app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - MONGODB_DATABASE=mini_rag
+    networks:
+      - backend
     restart: always
 
 networks:
   backend:
+    driver: bridge

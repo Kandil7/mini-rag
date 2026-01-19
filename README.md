@@ -45,3 +45,24 @@ Set your environment variables in the `.env` file. Like `OPENAI_API_KEY` value.
 $ uvicorn main:app --reload --host 0.0.0.0 --port 5000
 ```
 
+## Docker Setup
+
+Alternatively, you can run the application using Docker:
+
+1. Make sure Docker Desktop is running
+2. From the project root directory, run:
+
+```bash
+$ docker compose -f docker/docker-compose.yml up -d
+```
+
+This will start both the application and MongoDB in containers. The application will be available at `http://localhost:8000`.
+
+To stop the containers:
+
+```bash
+$ docker compose -f docker/docker-compose.yml down
+```
+
+For detailed Docker setup instructions, see [DOCKER_SETUP.md](DOCKER_SETUP.md).
+
