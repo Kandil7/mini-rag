@@ -7,8 +7,9 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_db_client():
-    app.mongodb_client = AsyncIOMotorClient(Settings.MONGODB_URL)
-    app.db = app.mongodb_client[Settings.MONGODB_DATABASE]
+    settings = get_settings()
+    app.mongodb_client = AsyncIOMotorClient(settings.MONGODB_URL)
+    app.db = app.mongodb_client[settings.MONGODB_DATABASE]
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

@@ -1,7 +1,7 @@
 from fastapi import FastAPI , APIRouter,Depends, UploadFile,status
 from fastapi.responses import JSONResponse
 from helpers.config import get_settings,Settings
-import aiofiles 
+import aiofiles
 from models import ResponseSignal
 from controllers import DataController,ProjectController,ProcessController
 from .schema import ProcessRequest
@@ -40,10 +40,10 @@ async def upload_data(project_id:str , file:UploadFile,
     )
     try:
         async with aiofiles.open(file_path, mode='wb') as f:
-            while chunck := await file.read(app_settings.FILE_DEFUALT_CHANCK_SIZE):
-                await f.write(chunck)
+            while chunk := await file.read(app_settings.FILE_DEFUALT_CHANCK_SIZE):
+                await f.write(chunk)
     except Exception as e:
-         logger(f'Error uploading file: {e}')
+         logger.error(f'Error uploading file: {e}')
          return JSONResponse(
          status_code=status.HTTP_400_BAD_REQUEST,
          content={
@@ -57,37 +57,39 @@ async def upload_data(project_id:str , file:UploadFile,
           'file_id': file_id
        }
     )
-@data_router.post('/process/{project_id}')
+@data_router.get('/process/{project_id}')
 async def process_endpoint(project_id: str, process_request: ProcessRequest):
 
-    file_id=ProcessRequest.file_id
+    file_id = process_request.file_id
 
-    chunck_size=ProcessRequest.chunck_size
+    chunk_size = process_request.chunk_size
 
-    overlap_size=ProcessRequest.overlap_size
+    overlap_size = process_request.overlap_size
 
-    
+
     process_controller=ProcessController(project_id=project_id)
 
-    file_content=process_controller.get_file_content(file_id=file_id)
-    
-    file_chuncks=process_controller.process_file_content(
+    file_path = os.path.join(process_controller.project_path, file_id)
+
+    file_content=process_controller.get_file_content(file_id=file_id, file_path=file_path)
+
+    file_chunks=process_controller.process_file_content(
         file_content=file_content,
         file_id=file_id,
-        chunck_size=chunck_size,
+        chunk_size=chunk_size,
         overlap_size=overlap_size
 
     )
 
-    if file_chuncks is None or len(file_chuncks)==0 :
+    if file_chunks is None or len(file_chunks)==0 :
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
                 'message': ResponseSignal.FILE_PROCESS_FAILED.value
             }
         )
-    
-    return file_chuncks
+
+    return file_chunks
 
 
     
