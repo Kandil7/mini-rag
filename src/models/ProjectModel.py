@@ -7,12 +7,12 @@ class ProjectModel(BaseDataModel):
         self.collection =self.db_client[DataBaseEnum.COLLECTION_PROJECT_NAME.value]
 
     async def create_project(self,project:Project):
-        result=self.collection.insert_one(project.model_dump)
+        result=await self.collection.insert_one(project.model_dump())
         project._id=result.inserted_id
 
         return project
     async def get_project_or_create_one(self,project_id:str):
-        record=self.collection.find_one({
+        record=await self.collection.find_one({
             "project_id":project_id
         })
 
@@ -31,11 +31,11 @@ class ProjectModel(BaseDataModel):
         if total_documents % page_size>0:
             total_pages+=1
 
-        cursor=self.collection.find().skip((page-1)*page_size).limit(page_size)
+        cursor = self.collection.find().skip((page-1)*page_size).limit(page_size)
         projects=[]
         async for document in cursor:
             projects.append(
                 Project(**document)
             )
 
-            return projects,total_pages
+        return projects,total_pages

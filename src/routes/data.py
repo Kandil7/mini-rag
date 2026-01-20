@@ -2,7 +2,7 @@ from fastapi import FastAPI , APIRouter,Depends, UploadFile,status,Request
 from fastapi.responses import JSONResponse
 from helpers.config import get_settings,Settings
 import aiofiles
-from models import ResponseSignal
+from models import ResponseSignal,ProjectModel
 from controllers import DataController,ProjectController,ProcessController
 from .schema import ProcessRequest
 import os
@@ -21,7 +21,7 @@ async def upload_data(request:Request,project_id:str , file:UploadFile,
                       app_settings:Settings= Depends(get_settings)):
     
     project_model=ProjectModel(
-        db_client=Request.app.db_client
+        db_client=request.app.db
     )
 
     project=await project_model.get_project_or_create_one(
@@ -68,7 +68,7 @@ async def upload_data(request:Request,project_id:str , file:UploadFile,
 
        }
     )
-@data_router.get('/process/{project_id}')
+@data_router.post('/process/{project_id}')
 async def process_endpoint(project_id: str, process_request: ProcessRequest):
 
     file_id = process_request.file_id
