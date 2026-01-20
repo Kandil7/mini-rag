@@ -119,8 +119,8 @@ async def process_endpoint(
 
     file_chunks_record=[
         DataChunk(
-            # chunk_id=f"{project_id}_{i+1}",  # Generate a unique chunk ID
-            chunk_project_id=ObjectId(project_id),  # Convert string to ObjectId
+            chunk_id=f"{project_id}_{file_id}_{i+1}",  # Generate a unique chunk ID
+            chunk_project_id=project_id,  # Use string project_id, not ObjectId
             chunk_metadata= chunk.metadata,
             chunk_order=i+1,
             chunk_text= chunk.page_content
