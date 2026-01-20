@@ -6,6 +6,7 @@ from models import ResponseSignal,ProjectModel,ChunkModel
 from controllers import DataController,ProjectController,ProcessController
 from .schema import ProcessRequest
 from models.db_schema.data_chunk import DataChunk
+from bson.objectid import ObjectId
 
 
 import os
@@ -72,7 +73,20 @@ async def upload_data(request:Request,project_id:str , file:UploadFile,
        }
     )
 @data_router.get('/process/{project_id}')
-async def process_endpoint(request:Request, project_id: str, process_request: ProcessRequest):
+async def process_endpoint(
+    request: Request,
+    project_id: str,
+    file_id: str,
+    chunk_size: int = 100,
+    overlap_size: int = 20
+):
+    # Create ProcessRequest object manually from query parameters
+    from routes.schema.data import ProcessRequest
+    process_request = ProcessRequest(
+        file_id=file_id,
+        chunk_size=chunk_size,
+        overlap_size=overlap_size
+    )
 
     file_id = process_request.file_id
 
@@ -105,7 +119,8 @@ async def process_endpoint(request:Request, project_id: str, process_request: Pr
 
     file_chunks_record=[
         DataChunk(
-            project_id=project_id,
+            # chunk_id=f"{project_id}_{i+1}",  # Generate a unique chunk ID
+            chunk_project_id=ObjectId(project_id),  # Convert string to ObjectId
             chunk_metadata= chunk.metadata,
             chunk_order=i+1,
             chunk_text= chunk.page_content
