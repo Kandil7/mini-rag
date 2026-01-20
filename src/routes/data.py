@@ -71,7 +71,7 @@ async def upload_data(request:Request,project_id:str , file:UploadFile,
 
        }
     )
-@data_router.post('/process/{project_id}')
+@data_router.get('/process/{project_id}')
 async def process_endpoint(request:Request, project_id: str, process_request: ProcessRequest):
 
     file_id = process_request.file_id
