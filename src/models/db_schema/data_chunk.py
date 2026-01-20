@@ -7,7 +7,7 @@ class DataChunk(BaseModel):
     chunk_id:str =Field(...,min_length=1)
     chunck_text:str =Field(...,min_length=1)
     chunk_metadata:dict =Field(...,min_length=1)
-    chunck_order:int =Field(...,min_length=1)
+    chunck_order:int =Field(...,gt=0)
 
     project_id:ObjectId=Field(...,min_length=1)
 
