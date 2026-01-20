@@ -26,7 +26,8 @@ class ChunkModel(BaseDataModel):
         
         return DataChunk(**record)
     async def insert_many_chunks(self,chunks:list,batch_size:int=100):
-        
+        total_inserted = 0
+
         for i in range(0,len(chunks),batch_size):
             batch=chunks[i:i+batch_size]
 
@@ -35,5 +36,7 @@ class ChunkModel(BaseDataModel):
                 for chunk in batch
             ]
 
-            return self.collection.bulk_write(operations)
-        return len(chunks)
+            result = await self.collection.bulk_write(operations)
+            total_inserted += len(batch)
+
+        return total_inserted

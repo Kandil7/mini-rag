@@ -80,6 +80,10 @@ async def process_endpoint(
     chunk_size: int = 100,
     overlap_size: int = 20
 ):
+    # Get the actual project to access its database ID
+    project_model = ProjectModel(db_client=request.app.db)
+    project = await project_model.get_project_or_create_one(project_id=project_id)
+
     # Create ProcessRequest object manually from query parameters
     from routes.schema.data import ProcessRequest
     process_request = ProcessRequest(
@@ -120,7 +124,7 @@ async def process_endpoint(
     file_chunks_record=[
         DataChunk(
             chunk_id=f"{project_id}_{file_id}_{i+1}",  # Generate a unique chunk ID
-            chunk_project_id=project_id,  # Use string project_id, not ObjectId
+            chunk_project_id=project.id,  # Use the actual project ObjectId from the database
             chunk_metadata= chunk.metadata,
             chunk_order=i+1,
             chunk_text= chunk.page_content
@@ -132,9 +136,9 @@ async def process_endpoint(
         db_client=request.app.db
     )
 
-    no_record=chunk_model.insert_many_chunk(chunks=file_chunks_record)
+    no_record=await chunk_model.insert_many_chunks(chunks=file_chunks_record)  # Fixed method name and added await
 
-    return no_record
+    return {"message": "Chunks processed successfully", "count": len(file_chunks_record)}
 
 
     
