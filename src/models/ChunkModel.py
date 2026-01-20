@@ -40,3 +40,10 @@ class ChunkModel(BaseDataModel):
             total_inserted += len(batch)
 
         return total_inserted
+    
+    async def delete_chunk_by_id(slef,project_id:str):
+        result=await slef.collection.delete_many({
+            "chunk_project_id":project_id
+        })
+
+        return result.deleted_count
