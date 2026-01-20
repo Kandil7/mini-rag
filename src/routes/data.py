@@ -2,11 +2,15 @@ from fastapi import FastAPI , APIRouter,Depends, UploadFile,status,Request
 from fastapi.responses import JSONResponse
 from helpers.config import get_settings,Settings
 import aiofiles
-from models import ResponseSignal,ProjectModel
+from models import ResponseSignal,ProjectModel,ChunkModel
 from controllers import DataController,ProjectController,ProcessController
 from .schema import ProcessRequest
+from models.db_schema.data_chunk import DataChunk
+
+
 import os
 import logging
+
 
 logger=logging.getLogger('uvicorn.error')
 
@@ -68,7 +72,7 @@ async def upload_data(request:Request,project_id:str , file:UploadFile,
        }
     )
 @data_router.post('/process/{project_id}')
-async def process_endpoint(project_id: str, process_request: ProcessRequest):
+async def process_endpoint(request:Request, project_id: str, process_request: ProcessRequest):
 
     file_id = process_request.file_id
 
@@ -99,7 +103,23 @@ async def process_endpoint(project_id: str, process_request: ProcessRequest):
             }
         )
 
-    return file_chunks
+    file_chunks_record=[
+        DataChunk(
+            project_id=project_id,
+            chunk_metadata= chunk.metadata,
+            chunk_order=i+1,
+            chunk_text= chunk.page_content
+        )
+        for i , chunk in enumerate(file_chunks)
+    ]
+
+    chunk_model=ChunkModel(
+        db_client=request.app.db
+    )
+
+    no_record=chunk_model.insert_many_chunk(chunks=file_chunks_record)
+
+    return no_record
 
 
     
