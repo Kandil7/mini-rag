@@ -19,6 +19,7 @@ class Project(BaseModel):
     class Config:
         arbitrary_types_allowed=True
         populate_by_name=True
+    @classmethod   
     def get_indexes(cls):
         return[{
             "key":[("chunk_project_id",1)
