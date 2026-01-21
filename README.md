@@ -47,6 +47,7 @@ $ uvicorn main:app --reload --host 0.0.0.0 --port 5000
 
 ## Docker Setup
 
+
 Alternatively, you can run the application using Docker:
 
 1. Make sure Docker Desktop is running
@@ -62,6 +63,21 @@ To stop the containers:
 
 ```bash
 $ docker compose -f docker/docker-compose.yml down
+```
+## Run Docker Compose Services
+
+```bash
+$ cd docker
+$ cp .env.example .env
+```
+
+- update `.env` with your credentials
+
+
+
+```bash
+$ cd docker
+$ sudo docker compose up -d
 ```
 
 For detailed Docker setup instructions, see [DOCKER_SETUP.md](DOCKER_SETUP.md).
