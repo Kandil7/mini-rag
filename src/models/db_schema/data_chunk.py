@@ -9,6 +9,7 @@ class DataChunk(BaseModel):
     chunk_metadata: dict = Field(..., min_length=1)
     chunk_order: int = Field(..., gt=0)
     chunk_project_id: ObjectId = Field(...)
+    chunk_asset_id: ObjectId
 
 
     class Config:

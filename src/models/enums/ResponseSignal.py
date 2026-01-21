@@ -7,4 +7,7 @@ class ResponseSignal(Enum):
     FILE_UPLOAD_FAILED = "FILE_UPLOAD_FAILED"
     FILE_UPLOAD_SUCCESS = "FILE_UPLOAD_SUCCESS"
     FILE_PROCESS_FAILED = "FILE_PROCESS_FAILED"
+    NO_FILES_ERROR = "not_found_files"
+    FILE_ID_ERROR = "no_file_found_with_this_id"
+
     
