@@ -9,6 +9,23 @@ Before running the application with Docker, ensure you have:
 
 ## Setup Instructions
 
+## Run Docker Compose Services
+
+```bash
+$ cd docker
+$ cp .env.example .env
+```
+
+- update `.env` with your credentials
+
+
+
+```bash
+$ cd docker
+$ sudo docker compose up -d
+```
+
+
 ### 1. Start Docker Desktop
 Make sure Docker Desktop is running before proceeding with the following steps.
 
@@ -81,7 +98,7 @@ docker pull mongo:7.0
 ## Environment Variables
 
 The Docker setup handles environment variables through the docker-compose.yml file. The application expects:
-- `MONGODB_URL`: Set to `mongodb://mongodb:27017` for internal container communication
+- `MONGODB_URL`: Set to `mongodb://mongodb:27007` for internal container communication
 - `MONGODB_DATABASE`: Set to `mini_rag` for the database name
 
 ## Data Persistence

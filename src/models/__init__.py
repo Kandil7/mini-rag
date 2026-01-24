@@ -4,3 +4,4 @@ from .enums.ProcessingEnum import ProcessingEnum
 from .db_schema.project import Project
 from .BaseDataModel import BaseDataModel
 from .ProjectModel import ProjectModel
+from .ChunkModel import ChunkModel
