@@ -1,6 +1,15 @@
 from ..LLMInterface import LLMInterface
 from ..LLMEnum import OpenAIEnums
-from openai import OpenAI
+from openai import (
+    OpenAI,
+    RateLimitError,
+    APIError,
+    APIConnectionError,
+    BadRequestError,
+    AuthenticationError,
+    PermissionDeniedError,
+    NotFoundError,
+)
 import logging
 
 class OpenAIProvider(LLMInterface):
@@ -30,7 +39,15 @@ class OpenAIProvider(LLMInterface):
         else:
             self.client = None
 
+        self.last_error_type = None
         self.logger = logging.getLogger(__name__)
+
+    def _clear_error(self):
+        self.last_error_type = None
+
+    def _set_error(self, error_type: str, message: str):
+        self.last_error_type = error_type
+        self.logger.error(message)
 
     def set_generation_model(self, model_id: str):
         self.generation_model_id = model_id
@@ -44,6 +61,8 @@ class OpenAIProvider(LLMInterface):
 
     def generate_text(self, prompt: str, chat_history: list=[], max_output_tokens: int=None,
                             temperature: float = None):
+
+        self._clear_error()
 
         if not self.client:
             self.logger.error("OpenAI client was not set")
@@ -61,12 +80,28 @@ class OpenAIProvider(LLMInterface):
             self.construct_prompt(prompt=prompt, role=OpenAIEnums.USER.value)
         )
 
-        response = self.client.chat.completions.create(
-            model = self.generation_model_id,
-            messages = chat_history_copy,
-            max_tokens = max_output_tokens,
-            temperature = temperature
-        )
+        try:
+            response = self.client.chat.completions.create(
+                model = self.generation_model_id,
+                messages = chat_history_copy,
+                max_tokens = max_output_tokens,
+                temperature = temperature
+            )
+        except RateLimitError as exc:
+            self._set_error("rate_limit", f"OpenAI rate limit exceeded: {exc}")
+            return None
+        except (AuthenticationError, PermissionDeniedError) as exc:
+            self._set_error("auth", f"OpenAI auth error: {exc}")
+            return None
+        except (BadRequestError, NotFoundError) as exc:
+            self._set_error("request", f"OpenAI request error: {exc}")
+            return None
+        except (APIConnectionError, APIError) as exc:
+            self._set_error("api", f"OpenAI API error: {exc}")
+            return None
+        except Exception as exc:
+            self._set_error("unknown", f"Unexpected OpenAI error: {exc}")
+            return None
 
         if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message:
             self.logger.error("Error while generating text with OpenAI")
@@ -77,6 +112,8 @@ class OpenAIProvider(LLMInterface):
 
     def embed_text(self, text: str, document_type: str = None):
 
+        self._clear_error()
+
         if not self.client:
             self.logger.error("OpenAI client was not set")
             return None
@@ -85,10 +122,26 @@ class OpenAIProvider(LLMInterface):
             self.logger.error("Embedding model for OpenAI was not set")
             return None
 
-        response = self.client.embeddings.create(
-            model = self.embedding_model_id,
-            input = text,
-        )
+        try:
+            response = self.client.embeddings.create(
+                model = self.embedding_model_id,
+                input = text,
+            )
+        except RateLimitError as exc:
+            self._set_error("rate_limit", f"OpenAI rate limit exceeded: {exc}")
+            return None
+        except (AuthenticationError, PermissionDeniedError) as exc:
+            self._set_error("auth", f"OpenAI auth error: {exc}")
+            return None
+        except (BadRequestError, NotFoundError) as exc:
+            self._set_error("request", f"OpenAI request error: {exc}")
+            return None
+        except (APIConnectionError, APIError) as exc:
+            self._set_error("api", f"OpenAI API error: {exc}")
+            return None
+        except Exception as exc:
+            self._set_error("unknown", f"Unexpected OpenAI error: {exc}")
+            return None
 
         if not response or not response.data or len(response.data) == 0 or not response.data[0].embedding:
             self.logger.error("Error while embedding text with OpenAI")
@@ -105,4 +158,3 @@ class OpenAIProvider(LLMInterface):
 
 
     
-

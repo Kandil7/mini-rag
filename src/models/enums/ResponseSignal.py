@@ -16,6 +16,8 @@ class ResponseSignal(Enum):
     VECTORDB_COLLECTION_RETRIEVED = "vectordb_collection_retrieved"
     VECTORDB_SEARCH_ERROR = "vectordb_search_error"
     VECTORDB_SEARCH_SUCCESS = "vectordb_search_success"
+    LLM_RATE_LIMIT_ERROR = "llm_rate_limit_error"
+    LLM_API_ERROR = "llm_api_error"
     
     
 

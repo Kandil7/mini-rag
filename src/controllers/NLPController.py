@@ -99,6 +99,11 @@ class NLPController(BaseController):
                                                  document_type=DocumentTypeEnum.QUERY.value)
 
         if not vector or len(vector) == 0:
+            last_error = getattr(self.embedding_client, "last_error_type", None)
+            if last_error == "rate_limit":
+                return {"error": "rate_limit"}
+            if last_error == "api":
+                return {"error": "api"}
             return False
 
         # step3: do semantic search

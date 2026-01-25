@@ -147,6 +147,22 @@ async def search_index(request: Request, project_id: str, search_request: Search
         project=project, text=search_request.text, limit=search_request.limit
     )
 
+    if isinstance(results, dict) and results.get("error") == "rate_limit":
+        return JSONResponse(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            content={
+                "signal": ResponseSignal.LLM_RATE_LIMIT_ERROR.value
+            }
+        )
+
+    if isinstance(results, dict) and results.get("error") == "api":
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "signal": ResponseSignal.LLM_API_ERROR.value
+            }
+        )
+
     if not results:
         return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
