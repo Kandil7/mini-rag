@@ -74,7 +74,7 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
 
         # store the assets into the database
     asset_model = await AssetModel.create_instance(
-        db_client=request.app.db_client
+        db_client=request.app.db
     )
 
     asset_resource = Asset(
@@ -103,14 +103,14 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
     do_reset = process_request.do_reset
 
     project_model = ProjectModel(
-        db_client=request.app.db_client
+        db_client=request.app.db
     )
     project = await project_model.get_project_or_create_one(
         project_id=project_id
     )
 
     asset_model = await AssetModel.create_instance(
-            db_client=request.app.db_client
+            db_client=request.app.db
         )
 
     project_files_ids = {}
@@ -159,7 +159,7 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
     no_files = 0
 
     chunk_model = await ChunkModel.create_instance(
-                        db_client=request.app.db_client
+                        db_client=request.app.db
                     )
 
     if do_reset == 1:

@@ -14,19 +14,16 @@ class ChunkModel(BaseDataModel):
         return instance
 
     async def init_collection(self):
-        all_collections=await self.collection.list_collection_names()
+        all_collections = await self.db_client.list_collection_names()
         if DataBaseEnum.COLLECTION_CHUNK_NAME.value not in all_collections:
-            self.collection=self.db_client[DataBaseEnum.COLLECTION_CHUNK_NAME.value]
-            indexs= DataChunk.get_indexes()
-            for index in indexs:
-                 await self.collection.create_index(
+            self.collection = self.db_client[DataBaseEnum.COLLECTION_CHUNK_NAME.value]
+            indexes = DataChunk.get_indexes()
+            for index in indexes:
+                await self.collection.create_index(
                     index["key"],
                     name=index["name"],
                     unique=index["unique"]
                 )
-
-
-        pass
     async def create_chunk(self,chunk:DataChunk):
         result=await self.collection.insert_one({
             chunk.model_dump(by_alias=True,exclude_unset=True)
@@ -60,8 +57,8 @@ class ChunkModel(BaseDataModel):
 
         return total_inserted
     
-    async def delete_chunk_by_id(slef,project_id:str):
-        result=await slef.collection.delete_many({
+    async def delete_chunk_by_id(self,project_id:str):
+        result=await self.collection.delete_many({
             "chunk_project_id":project_id
         })
 
