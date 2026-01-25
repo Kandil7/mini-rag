@@ -31,7 +31,7 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
         
     
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.db_client
+        db_client=request.app.db
     )
 
     project = await project_model.get_project_or_create_one(
