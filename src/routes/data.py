@@ -41,7 +41,7 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
     # validate the file properties
     data_controller = DataController()
 
-    is_valid, result_signal = data_controller.validate_uploaded_file(file=file)
+    is_valid, result_signal = data_controller.validate_upload_file(file=file)
 
     if not is_valid:
         return JSONResponse(
@@ -59,7 +59,7 @@ async def upload_data(request: Request, project_id: str, file: UploadFile,
 
     try:
         async with aiofiles.open(file_path, "wb") as f:
-            while chunk := await file.read(app_settings.FILE_DEFAULT_CHUNK_SIZE):
+            while chunk := await file.read(app_settings.FILE_DEFUALT_CHANCK_SIZE):
                 await f.write(chunk)
     except Exception as e:
 
