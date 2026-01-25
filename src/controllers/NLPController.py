@@ -3,6 +3,9 @@ from models.db_schema import Project, DataChunk
 from stores.llm.LLMEnum import DocumentTypeEnum
 from typing import List
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class NLPController(BaseController):
 
@@ -19,10 +22,16 @@ class NLPController(BaseController):
         return f"collection_{project_id}".strip()
     
     def reset_vector_db_collection(self, project: Project):
+        if not self.vectordb_client:
+            logger.error("Vector DB client was not set")
+            return False
         collection_name = self.create_collection_name(project_id=project.project_id)
         return self.vectordb_client.delete_collection(collection_name=collection_name)
     
     def get_vector_db_collection_info(self, project: Project):
+        if not self.vectordb_client:
+            logger.error("Vector DB client was not set")
+            return None
         collection_name = self.create_collection_name(project_id=project.project_id)
         collection_info = self.vectordb_client.get_collection_info(collection_name=collection_name)
 
@@ -33,6 +42,14 @@ class NLPController(BaseController):
     def index_into_vector_db(self, project: Project, chunks: List[DataChunk],
                                    chunks_ids: List[int], 
                                    do_reset: bool = False):
+
+        if not self.vectordb_client:
+            logger.error("Vector DB client was not set")
+            return False
+
+        if not self.embedding_client:
+            logger.error("Embedding client was not set")
+            return False
         
         # step1: get collection name
         collection_name = self.create_collection_name(project_id=project.project_id)
@@ -69,6 +86,14 @@ class NLPController(BaseController):
         # step1: get collection name
         collection_name = self.create_collection_name(project_id=project.project_id)
 
+        if not self.vectordb_client:
+            logger.error("Vector DB client was not set")
+            return False
+
+        if not self.embedding_client:
+            logger.error("Embedding client was not set")
+            return False
+
         # step2: get text embedding vector
         vector = self.embedding_client.embed_text(text=text, 
                                                  document_type=DocumentTypeEnum.QUERY.value)
@@ -91,6 +116,14 @@ class NLPController(BaseController):
     def answer_rag_question(self, project: Project, query: str, limit: int = 10):
         
         answer, full_prompt, chat_history = None, None, None
+
+        if not self.vectordb_client:
+            logger.error("Vector DB client was not set")
+            return answer, full_prompt, chat_history
+
+        if not self.embedding_client or not self.generation_client:
+            logger.error("Embedding or generation client was not set")
+            return answer, full_prompt, chat_history
 
         # step1: retrieve related documents
         retrieved_documents = self.search_vector_db_collection(

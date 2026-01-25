@@ -19,11 +19,11 @@ nlp_router = APIRouter(
 async def index_project(request: Request, project_id: str, push_request: PushRequest):
 
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.db_client
+        db_client=request.app.db
     )
 
     chunk_model = await ChunkModel.create_instance(
-        db_client=request.app.db_client
+        db_client=request.app.db
     )
 
     project = await project_model.get_project_or_create_one(
@@ -91,7 +91,7 @@ async def index_project(request: Request, project_id: str, push_request: PushReq
 async def get_project_index_info(request: Request, project_id: str):
     
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.db_client
+        db_client=request.app.db
     )
 
     project = await project_model.get_project_or_create_one(
@@ -108,6 +108,15 @@ async def get_project_index_info(request: Request, project_id: str):
 
     collection_info = nlp_controller.get_vector_db_collection_info(project=project)
 
+    if not collection_info:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "signal": ResponseSignal.VECTORDB_COLLECTION_RETRIEVED.value,
+                "collection_info": None
+            }
+        )
+
     return JSONResponse(
         content={
             "signal": ResponseSignal.VECTORDB_COLLECTION_RETRIEVED.value,
@@ -119,7 +128,7 @@ async def get_project_index_info(request: Request, project_id: str):
 async def search_index(request: Request, project_id: str, search_request: SearchRequest):
     
     project_model = await ProjectModel.create_instance(
-        db_client=request.app.db_client
+        db_client=request.app.db
     )
 
     project = await project_model.get_project_or_create_one(
