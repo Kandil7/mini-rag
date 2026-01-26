@@ -25,24 +25,50 @@ class QdrantDBProvider(VectorDBInterface):
     def disconnect(self):
         self.client = None
 
+    def _ensure_client(self) -> bool:
+        if self.client is None:
+            self.logger.error("Qdrant client is not connected")
+            return False
+        return True
+
     def is_collection_existed(self, collection_name: str) -> bool:
+        if not self._ensure_client():
+            return False
         return self.client.collection_exists(collection_name=collection_name)
     
     def list_all_collections(self) -> List:
-        return self.client.get_collections()
+        if not self._ensure_client():
+            return []
+        response = self.client.get_collections()
+        return response.collections if hasattr(response, "collections") else response
     
     def get_collection_info(self, collection_name: str) -> dict:
+        if not self._ensure_client():
+            return None
         if not self.is_collection_existed(collection_name=collection_name):
             return None
         return self.client.get_collection(collection_name=collection_name)
     
     def delete_collection(self, collection_name: str):
+        if not self._ensure_client():
+            return False
         if self.is_collection_existed(collection_name):
             return self.client.delete_collection(collection_name=collection_name)
         
     def create_collection(self, collection_name: str, 
                                 embedding_size: int,
                                 do_reset: bool = False):
+        if not self._ensure_client():
+            return False
+
+        if self.distance_method is None:
+            self.logger.error("Qdrant distance method is not set")
+            return False
+
+        if not embedding_size or embedding_size <= 0:
+            self.logger.error("Embedding size must be a positive integer")
+            return False
+
         if do_reset:
             _ = self.delete_collection(collection_name=collection_name)
         
@@ -56,6 +82,24 @@ class QdrantDBProvider(VectorDBInterface):
             )
 
             return True
+
+        # Validate existing collection matches expected vector size/distance
+        existing = self.client.get_collection(collection_name=collection_name)
+        vectors_config = getattr(existing, "config", None)
+        params = getattr(vectors_config, "params", None)
+        vector = getattr(params, "vectors", None)
+        size = getattr(vector, "size", None)
+        distance = getattr(vector, "distance", None)
+        if size is not None and size != embedding_size:
+            self.logger.error(
+                f"Collection '{collection_name}' has size {size}, expected {embedding_size}"
+            )
+            return False
+        if distance is not None and distance != self.distance_method:
+            self.logger.error(
+                f"Collection '{collection_name}' has distance {distance}, expected {self.distance_method}"
+            )
+            return False
         
         return False
     
@@ -63,8 +107,15 @@ class QdrantDBProvider(VectorDBInterface):
                          metadata: dict = None, 
                          record_id: str = None):
         
+        if not self._ensure_client():
+            return False
+
         if not self.is_collection_existed(collection_name):
             self.logger.error(f"Can not insert new record to non-existed collection: {collection_name}")
+            return False
+
+        if vector is None or len(vector) == 0:
+            self.logger.error("Vector is empty; skipping insert")
             return False
         
         try:
@@ -72,6 +123,7 @@ class QdrantDBProvider(VectorDBInterface):
                 collection_name=collection_name,
                 records=[
                     models.Record(
+                        id=record_id,
                         vector=vector,
                         payload={
                             "text": text, "metadata": metadata
@@ -88,6 +140,16 @@ class QdrantDBProvider(VectorDBInterface):
     def insert_many(self, collection_name: str, texts: list, 
                           vectors: list, metadata: list = None, 
                           record_ids: list = None, batch_size: int = 50):
+        if not self._ensure_client():
+            return False
+
+        if not self.is_collection_existed(collection_name):
+            self.logger.error(f"Can not insert batch to non-existed collection: {collection_name}")
+            return False
+
+        if len(texts) != len(vectors):
+            self.logger.error("Texts and vectors length mismatch")
+            return False
         
         if metadata is None:
             metadata = [None] * len(texts)
@@ -95,15 +157,21 @@ class QdrantDBProvider(VectorDBInterface):
         if record_ids is None:
             record_ids = [None] * len(texts)
 
+        if any(v is None or len(v) == 0 for v in vectors):
+            self.logger.error("One or more vectors are empty; skipping batch insert")
+            return False
+
         for i in range(0, len(texts), batch_size):
             batch_end = i + batch_size
 
             batch_texts = texts[i:batch_end]
             batch_vectors = vectors[i:batch_end]
             batch_metadata = metadata[i:batch_end]
+            batch_ids = record_ids[i:batch_end]
 
             batch_records = [
                 models.Record(
+                    id=batch_ids[x],
                     vector=batch_vectors[x],
                     payload={
                         "text": batch_texts[x], "metadata": batch_metadata[x]
@@ -125,6 +193,9 @@ class QdrantDBProvider(VectorDBInterface):
         return True
         
     def search_by_vector(self, collection_name: str, vector: list, limit: int = 5):
+
+        if not self._ensure_client():
+            return []
 
         return self.client.search(
             collection_name=collection_name,

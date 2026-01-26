@@ -2,6 +2,7 @@ from pydantic import BaseModel ,Field ,field_validator
 from typing import Optional
 from bson.objectid import ObjectId
 from pydantic import AliasChoices
+import re
 
 
 
@@ -12,8 +13,8 @@ class Project(BaseModel):
     #validate project id
     @field_validator('project_id')
     def vaildate_project_id(cls,value):
-        if not value.isalnum():
-            raise ValueError('project id should be alphanumeric')
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", value):
+            raise ValueError('project id should be alphanumeric (letters, numbers, _ or -)')
         return value
 
     class Config:

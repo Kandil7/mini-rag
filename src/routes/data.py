@@ -115,10 +115,15 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
 
     project_files_ids = {}
     if process_request.file_id:
-        asset_record = await asset_model.get_asset_record(
-            asset_project_id=project.id,
-            asset_name=process_request.file_id
+        asset_record = await asset_model.get_asset_by_id(
+            asset_id=process_request.file_id
         )
+
+        if asset_record is None:
+            asset_record = await asset_model.get_asset_record(
+                asset_project_id=project.id,
+                asset_name=process_request.file_id
+            )
 
         if asset_record is None:
             return JSONResponse(
@@ -206,7 +211,7 @@ async def process_endpoint(request: Request, project_id: str, process_request: P
 
     return JSONResponse(
         content={
-            "signal": ResponseSignal.PROCESSING_SUCCESS.value,
+            "signal": ResponseSignal.FILE_UPLOAD_SUCCESS.value,
             "inserted_chunks": no_records,
             "processed_files": no_files
         }
