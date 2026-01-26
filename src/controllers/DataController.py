@@ -13,7 +13,7 @@ class DataController(BaseController):
 
     def validate_upload_file(self, file: UploadFile):
         # validate the file type
-        if file.content_type not in self.app_settings.FILE_ALLOWED_TYPE:
+        if file.content_type not in self.app_settings.FILE_ALLOWED_TYPES:
             return False , ResponseSignal.INVALID_FILE_TYPE.value
         # file.size is in bytes, FILE_MAX_SIZE is in MB, so convert MB to bytes for comparison
         if file.size > self.app_settings.FILE_MAX_SIZE * self.size_scale:

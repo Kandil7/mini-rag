@@ -1,11 +1,14 @@
 services:
   mongodb:
-    image: mongo:7.0.28-jammy
+    image: mongo:7-jammy
+    
     container_name: mongodb
+    
     ports:
       - "27007:27017"
+    
     volumes:
-      - mongodb:/data/db
+      - mongodata:/data/db
 
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
@@ -13,30 +16,41 @@ services:
     
     networks:
       - backend
+    
     restart: always
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama:/root/.ollama
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
-#   app:
-#     build:
-#       context: ..
-#       dockerfile: Dockerfile
-#     container_name: mini-rag-app
-#     ports:
-#       - "8000:8000"
-#     depends_on:
-#       - mongodb
-#     environment:
-#       - MONGODB_URL=mongodb://mongodb:27007
-#       - MONGODB_DATABASE=mini_rag
-#       - APP_NAME=Mini RAG
-#       - APP_VERSION=1.0.0
-#       - FILE_ALLOWED_TYPE=["text/plain","application/pdf"]
-#       - FILE_MAX_SIZE=10
-#       - FILE_DEFUALT_CHANCK_SIZE=512000
-#     networks:
-#       - backend
-#     restart: always
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: ["/bin/sh", "-lc", "ollama pull qwen3:4b && ollama pull nomic-embed-text:latest"]
+    networks:
+      - backend
+    restart: "no"
 
 networks:
   backend:
-#     driver: bridge
+
+volumes:
+  mongodata:
+  ollama:

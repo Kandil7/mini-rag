@@ -13,19 +13,16 @@ class ProjectModel(BaseDataModel):
         return instance
 
     async def init_collection(self):
-        all_collections=await self.collection.list_collection_names()
+        all_collections = await self.db_client.list_collection_names()
         if DataBaseEnum.COLLECTION_PROJECT_NAME.value not in all_collections:
-            self.collection=self.db_client[DataBaseEnum.COLLECTION_PROJECT_NAME.value]
-            indexs= DataChunk.get_indexes()
-            for index in indexs:
-                 await self.collection.create_index(
+            self.collection = self.db_client[DataBaseEnum.COLLECTION_PROJECT_NAME.value]
+            indexes = DataChunk.get_indexes()
+            for index in indexes:
+                await self.collection.create_index(
                     index["key"],
                     name=index["name"],
                     unique=index["unique"]
                 )
-
-
-        pass
 
     async def create_project(self,project:Project):
         result=await self.collection.insert_one(project.model_dump(by_alias=True,exclude_unset=True))
@@ -60,3 +57,5 @@ class ProjectModel(BaseDataModel):
             )
 
         return projects,total_pages
+    
+    

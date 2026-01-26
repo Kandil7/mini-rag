@@ -36,7 +36,8 @@ class ProcessController(BaseController):
             file_path = os.path.join(self.project_path, file_id)
         loader=self.get_file_loader(file_id=file_id, file_path=file_path)
         if loader is None:
-            raise ValueError(f"Unsupported file type for file: {file_id}")
+            # File is missing or type unsupported.
+            return None
         return loader.load()
 
     def process_file_content(self,file_content:list,file_id:str,
