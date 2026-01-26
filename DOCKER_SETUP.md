@@ -18,11 +18,9 @@ $ cp .env.example .env
 
 - update `.env` with your credentials
 
-
-
 ```bash
 $ cd docker
-$ sudo docker compose up -d
+$ docker compose up -d
 ```
 
 
@@ -38,9 +36,9 @@ docker compose -f docker/docker-compose.yml up -d
 ```
 
 This will:
-- Build the application container
 - Start MongoDB service
-- Start the Mini RAG application
+- Start Ollama service
+- Pull Ollama models on first start
 - Run services in detached mode
 
 ### 3. Check Service Status
@@ -62,7 +60,7 @@ docker compose -f docker/docker-compose.yml logs -f
 ### 5. Access the Application
 
 Once services are running, you can access:
-- The Mini RAG API at: `http://localhost:8000`
+- Ollama at: `http://localhost:11435`
 - MongoDB is available internally at: `mongodb://mongodb:27017`
 
 ### 6. Stop Services
@@ -78,7 +76,7 @@ docker compose -f docker/docker-compose.yml down
 ### Common Issues:
 
 1. **Docker daemon not running**: Make sure Docker Desktop is started
-2. **Port already in use**: Check if ports 8000 or 27017 are already in use
+2. **Port already in use**: Check if ports 11435 or 27007 are already in use
 3. **Permission errors**: Ensure you have proper permissions to run Docker
 
 ### Building Individual Components:
@@ -95,12 +93,19 @@ Or rebuild just the MongoDB container:
 docker pull mongo:7.0
 ```
 
+Or rebuild just the Ollama image:
+
+```bash
+docker pull ollama/ollama:latest
+```
+
 ## Environment Variables
 
 The Docker setup handles environment variables through the docker-compose.yml file. The application expects:
-- `MONGODB_URL`: Set to `mongodb://mongodb:27007` for internal container communication
+- `MONGODB_URL`: Set to `mongodb://mongodb:27017` for internal container communication
 - `MONGODB_DATABASE`: Set to `mini_rag` for the database name
+- `OPENAI_API_URL`: Set to `http://localhost:11435/v1` when running the app on the host
 
 ## Data Persistence
 
-MongoDB data is persisted in the `./mongodb_data` directory relative to the docker-compose.yml file location. This ensures data persists between container restarts.
+MongoDB data is persisted in a named volume managed by Docker. Ollama models are persisted in a named volume as well.
