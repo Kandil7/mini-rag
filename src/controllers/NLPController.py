@@ -64,20 +64,26 @@ class NLPController(BaseController):
         ]
 
         # step3: create collection if not exists
-        _ = self.vectordb_client.create_collection(
+        created = self.vectordb_client.create_collection(
             collection_name=collection_name,
             embedding_size=self.embedding_client.embedding_size,
             do_reset=do_reset,
         )
+        if created is False:
+            logger.error("Failed to create or validate vector db collection")
+            return False
 
         # step4: insert into vector db
-        _ = self.vectordb_client.insert_many(
+        inserted = self.vectordb_client.insert_many(
             collection_name=collection_name,
             texts=texts,
             metadata=metadata,
             vectors=vectors,
             record_ids=chunks_ids,
         )
+        if inserted is False:
+            logger.error("Failed to insert vectors into vector db")
+            return False
 
         return True
 

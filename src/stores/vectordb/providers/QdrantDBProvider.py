@@ -3,6 +3,7 @@ from ..VectorDBInterface import VectorDBInterface
 from ..VectorDBEnum import DistanceMethodEnums
 import logging
 from typing import List
+import json
 
 class QdrantDBProvider(VectorDBInterface):
 
@@ -101,7 +102,7 @@ class QdrantDBProvider(VectorDBInterface):
             )
             return False
         
-        return False
+        return True
     
     def insert_one(self, collection_name: str, text: str, vector: list,
                          metadata: dict = None, 
@@ -197,9 +198,22 @@ class QdrantDBProvider(VectorDBInterface):
         if not self._ensure_client():
             return []
 
-        return self.client.search(
-            collection_name=collection_name,
-            query_vector=vector,
-            limit=limit
-        )
+        try:
+            results = self.client.search(
+                collection_name=collection_name,
+                query_vector=vector,
+                limit=limit
+            )
+        except Exception as e:
+            self.logger.error(f"Error while searching vector db: {e}")
+            return []
+
+        return [self._serialize_scored_point(item) for item in results]
+
+    def _serialize_scored_point(self, item):
+        if hasattr(item, "model_dump"):
+            return item.model_dump()
+        if hasattr(item, "dict"):
+            return item.dict()
+        return json.loads(json.dumps(item, default=lambda x: x.__dict__))
 
