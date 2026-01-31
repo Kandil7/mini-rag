@@ -211,7 +211,7 @@ class NLPController(BaseController):
         documents_prompts = "\n".join([
             self.template_parser.get("rag", "document_prompt", {
                     "doc_num": idx + 1,
-                    "chunk_text": doc,
+                    "chunk_text": doc['payload']['text'] if isinstance(doc, dict) and 'payload' in doc and 'text' in doc['payload'] else str(doc),
             })
             for idx, doc in enumerate(retrieved_documents)
         ])
