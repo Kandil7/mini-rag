@@ -143,7 +143,66 @@ class NLPController(BaseController):
             limit=limit,
         )
 
+        # Check if search returned an error object
+        if isinstance(retrieved_documents, dict) and "error" in retrieved_documents:
+            # Handle search errors by returning an appropriate response
+            system_prompt = self.template_parser.get("rag", "system_prompt")
+            footer_prompt = self.template_parser.get("rag", "footer_prompt", {"query": query})
+
+            # Create a prompt that indicates there was a search error
+            documents_prompts = f"An error occurred while searching for relevant documents: {retrieved_documents.get('error', 'Unknown error')}"
+            full_prompt = "\n\n".join([documents_prompts, footer_prompt])
+
+            # step3: Construct Generation Client Prompts
+            chat_history = [
+                self.generation_client.construct_prompt(
+                    prompt=system_prompt,
+                    role="system",
+                )
+            ]
+
+            # step4: Retrieve the Answer
+            answer = self.generation_client.generate_text(
+                prompt=full_prompt,
+                chat_history=chat_history
+            )
+
+            # If the LLM failed to generate an answer, return a default message
+            if not answer:
+                error_msg = retrieved_documents.get('error', 'Unknown error') if isinstance(retrieved_documents, dict) else 'Unknown error'
+                answer = f"Sorry, I couldn't generate an answer for your query: '{query}'. An error occurred while searching for documents: {error_msg}"
+
+            return answer, full_prompt, chat_history
+
         if not retrieved_documents or len(retrieved_documents) == 0:
+            # If no documents are retrieved, we still want to try to generate an answer
+            # but with an indication that no supporting documents were found
+            system_prompt = self.template_parser.get("rag", "system_prompt")
+
+            # Create a prompt that indicates no documents were found
+            documents_prompts = "No relevant documents were found in the knowledge base to answer this query."
+            footer_prompt = self.template_parser.get("rag", "footer_prompt", {"query": query})
+
+            # step3: Construct Generation Client Prompts
+            chat_history = [
+                self.generation_client.construct_prompt(
+                    prompt=system_prompt,
+                    role="system",
+                )
+            ]
+
+            full_prompt = "\n\n".join([documents_prompts, footer_prompt])
+
+            # step4: Retrieve the Answer
+            answer = self.generation_client.generate_text(
+                prompt=full_prompt,
+                chat_history=chat_history
+            )
+
+            # If the LLM failed to generate an answer, return a default message
+            if not answer:
+                answer = f"Sorry, I couldn't generate an answer for your query: '{query}'. No relevant documents were found in the knowledge base."
+
             return answer, full_prompt, chat_history
         
         # step2: Construct LLM prompt
@@ -152,18 +211,19 @@ class NLPController(BaseController):
         documents_prompts = "\n".join([
             self.template_parser.get("rag", "document_prompt", {
                     "doc_num": idx + 1,
-                    "chunk_text": doc.text,
+                    "chunk_text": doc['payload']['text'] if isinstance(doc, dict) and 'payload' in doc and 'text' in doc['payload'] else str(doc),
             })
             for idx, doc in enumerate(retrieved_documents)
         ])
 
-        footer_prompt = self.template_parser.get("rag", "footer_prompt")
+        footer_prompt = self.template_parser.get("rag", "footer_prompt", {"query": query})
 
         # step3: Construct Generation Client Prompts
+        # Use "system" role directly as OpenAI expects this value
         chat_history = [
             self.generation_client.construct_prompt(
                 prompt=system_prompt,
-                role=self.generation_client.enums.SYSTEM.value,
+                role="system",
             )
         ]
 
@@ -174,6 +234,10 @@ class NLPController(BaseController):
             prompt=full_prompt,
             chat_history=chat_history
         )
+
+        # If the LLM failed to generate an answer, return a default message
+        if not answer:
+            answer = f"Sorry, I couldn't generate an answer for your query: '{query}'. This might be due to an issue with the language model service."
 
         return answer, full_prompt, chat_history
 
